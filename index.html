@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MathSolve by Lec</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    /* Custom styles */
+    :root {
+      --pink-500: #ec4899;
+      --purple-500: #a855f7;
+      --slate-50: #f8fafc;
+      --slate-100: #f1f5f9;
+      --slate-200: #e2e8f0;
+      --slate-700: #334155;
+      --slate-800: #1e293b;
+      --slate-900: #0f172a;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    .bg-gradient {
+      background: linear-gradient(to bottom, var(--slate-50), var(--slate-100));
+    }
+
+    .text-gradient {
+      background: linear-gradient(to right, var(--pink-500), var(--purple-500));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .btn-gradient {
+      background: linear-gradient(to right, var(--pink-500), var(--purple-500));
+      color: white;
+      transition: all 0.3s;
+    }
+
+    .btn-gradient:hover {
+      background: linear-gradient(to right, #d946ef, #9333ea);
+    }
+
+    .header-glow {
+      position: relative;
+    }
+
+    .header-glow::before {
+      content: '';
+      position: absolute;
+      top: -4px;
+      left: -4px;
+      right: -4px;
+      bottom: -4px;
+      background: linear-gradient(to right, var(--pink-500), var(--purple-500));
+      border-radius: 0.5rem;
+      z-index: -1;
+      filter: blur(8px);
+      opacity: 0.25;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .tab {
+      cursor: pointer;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      transition: all 0.3s;
+    }
+
+    .tab.active {
+      background-color: white;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .card {
+      background-color: white;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+      background: linear-gradient(to right, #fdf2f8, #f5f3ff);
+      border-bottom: 1px solid var(--slate-200);
+      border-top-left-radius: 0.5rem;
+      border-top-right-radius: 0.5rem;
+      padding: 1.25rem;
+    }
+
+    .chat-message {
+      display: flex;
+      margin-bottom: 1rem;
+    }
+
+    .chat-message.user {
+      justify-content: flex-end;
+    }
+
+    .chat-bubble {
+      max-width: 80%;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+    }
+
+    .chat-bubble.assistant {
+      background-color: white;
+      border: 1px solid var(--slate-200);
+    }
+
+    .chat-bubble.user {
+      background: linear-gradient(to right, var(--pink-500), var(--purple-500));
+      color: white;
+    }
+
+    .avatar {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 0.5rem;
+    }
+
+    .avatar.assistant {
+      border: 2px solid #d8b4fe;
+      overflow: hidden;
+      padding: 0;
+    }
+
+    .avatar.user {
+      background-color: var(--slate-200);
+    }
+
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+    }
+
+    .typing-dot {
+      width: 0.5rem;
+      height: 0.5rem;
+      background-color: var(--purple-500);
+      border-radius: 50%;
+      margin-right: 0.25rem;
+      animation: bounce 1s infinite;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.3s;
+    }
+
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.6s;
+    }
+
+    @keyframes bounce {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-5px);
+      }
+    }
+
+    @keyframes fadeOut {
+      0% { opacity: 1; }
+      75% { opacity: 0.5; }
+      100% { opacity: 0; }
+    }
+
+    .animate-fade-out {
+      animation: fadeOut 3s forwards;
+    }
+
+    .number-line {
+      width: 100%;
+      height: 100px;
+      border: 1px solid var(--slate-200);
+      border-radius: 0.5rem;
+      background-color: var(--slate-50);
+    }
+
+    /* Dark mode styles */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: var(--slate-900);
+        color: white;
+      }
+
+      .bg-gradient {
+        background: linear-gradient(to bottom, var(--slate-900), var(--slate-800));
+      }
+
+      .card {
+        background-color: var(--slate-800);
+        border: 1px solid var(--slate-700);
+      }
+
+      .card-header {
+        background: var(--slate-800);
+        border-bottom: 1px solid var(--slate-700);
+      }
+
+      .chat-bubble.assistant {
+        background-color: var(--slate-800);
+        border: 1px solid var(--slate-700);
+      }
+
+      .tab.active {
+        background-color: var(--slate-700);
+      }
+
+      .number-line {
+        border: 1px solid var(--slate-700);
+        background-color: var(--slate-900);
+      }
+    }
+  </style>
+</head>
+<body class="bg-gradient min-h-screen">
+  <div class="absolute top-4 right-6 text-sm font-medium text-gray-500">Made by Lec</div>
+
+  <main class="container mx-auto py-12 px-4">
+    <div class="flex flex-col items-center justify-center mb-12">
+      <div class="relative header-glow">
+        <div class="relative bg-white dark:bg-slate-900 rounded-lg flex items-center gap-3 px-6 py-3 shadow-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 text-purple-500">
+            <rect width="20" height="14" x="2" y="3" rx="2" />
+            <line x1="12" x2="12" y1="7" y2="13" />
+            <path d="M8 13h8" />
+            <path d="M10 17v4" />
+            <path d="M14 17v4" />
+          </svg>
+          <h1 class="text-4xl font-bold text-gradient">MathSolve</h1>
+        </div>
+      </div>
+
+      <p class="text-gray-500 text-center max-w-2xl mt-4 text-lg">
+        Your comprehensive math problem solver. Type expressions, upload images, or chat to get step-by-step solutions.
+      </p>
+    </div>
+
+    <div class="max-w-4xl mx-auto">
+      <div class="tabs flex bg-slate-100 dark:bg-slate-800 rounded-xl p-1 mb-8">
+        <div class="tab active flex-1 flex items-center justify-center gap-2 rounded-lg" data-tab="expression">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="20" height="14" x="2" y="3" rx="2" />
+            <line x1="12" x2="12" y1="7" y2="13" />
+            <path d="M8 13h8" />
+            <path d="M10 17v4" />
+            <path d="M14 17v4" />
+          </svg>
+          <span>Math Expression</span>
+        </div>
+        <div class="tab flex-1 flex items-center justify-center gap-2 rounded-lg" data-tab="image">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 8h.01" />
+            <rect width="16" height="16" x="4" y="4" rx="3" />
+            <path d="m4 15 4-4a3 5 0 0 1 3 0l5 5" />
+            <path d="m14 14 1-1a3 5 0 0 1 3 0l2 2" />
+          </svg>
+          <span>Image Upload</span>
+        </div>
+        <div class="tab flex-1 flex items-center justify-center gap-2 rounded-lg" data-tab="chat">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 7h18" />
+            <path d="M7 7v14" />
+            <path d="M3 21h18" />
+            <path d="M17 7v14" />
+            <path d="M3 13h18" />
+            <path d="M10 13v8" />
+            <path d="M14 13v8" />
+          </svg>
+          <span>Chat Assistant</span>
+        </div>
+      </div>
+
+      <div class="relative">
+        <div class="tab-content active" id="expression-tab">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="text-xl font-bold flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-500">
+                  <rect width="20" height="14" x="2" y="3" rx="2" />
+                  <line x1="12" x2="12" y1="7" y2="13" />
+                  <path d="M8 13h8" />
+                  <path d="M10 17v4" />
+                  <path d="M14 17v4" />
+                </svg>
+                Solve Math Expression
+              </h2>
+              <p class="text-gray-500 mt-1">Enter any math expression like "-(45) + +12" or "3x + 5 = 20"</p>
+            </div>
+            <div class="p-6">
+              <div class="flex gap-2">
+                <input type="text" id="expression-input" placeholder="Enter a math expression (e.g., -(45) + +12)" class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <button id="solve-btn" class="btn-gradient px-4 py-2 rounded-md flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
+                    <path d="m22 2-7 20-4-9-9-4Z" />
+                    <path d="M22 2 11 13" />
+                  </svg>
+                  Solve
+                </button>
+              </div>
+
+              <div id="expression-error" class="mt-4 text-red-500 opacity-80 hidden"></div>
+
+              <div id="expression-result" class="mt-4 hidden">
+                <div class="card p-4 border border-slate-200 dark:border-slate-700 shadow-md overflow-hidden">
+                  <div class="mb-4 pb-3 border-b">
+                    <h3 class="text-lg font-medium flex items-center">
+                      <span class="mr-2">Result:</span>
+                      <span id="expression-answer" class="font-bold text-purple-600 dark:text-purple-400"></span>
+                    </h3>
+                  </div>
+
+                  <div class="mb-4">
+                    <h4 class="font-medium mb-2 flex items-center">
+                      <span class="h-1 w-3 bg-purple-500 rounded-full mr-2"></span>
+                      Steps:
+                    </h4>
+                    <ol id="expression-steps" class="list-decimal pl-5 space-y-1"></ol>
+                  </div>
+
+                  <div id="number-line-container" class="mt-4 pt-3 border-t hidden">
+                    <h4 class="font-medium mb-2 flex items-center">
+                      <span class="h-1 w-3 bg-purple-500 rounded-full mr-2"></span>
+                      Visualization:
+                    </h4>
+                    <canvas id="number-line" class="number-line" width="600" height="100"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-content" id="image-tab">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="text-xl font-bold flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-500">
+                  <path d="M15 8h.01" />
+                  <rect width="16" height="16" x="4" y="4" rx="3" />
+                  <path d="m4 15 4-4a3 5 0 0 1 3 0l5 5" />
+                  <path d="m14 14 1-1a3 5 0 0 1 3 0l2 2" />
+                </svg>
+                Upload Math Problem
+              </h2>
+              <p class="text-gray-500 mt-1">Take a photo or upload an image of your math problem</p>
+            </div>
+            <div class="p-6">
+              <input type="file" id="file-input" accept="image/*" class="hidden">
+              <div class="flex gap-2">
+                <button id="upload-btn" class="flex-1 px-4 py-2 border-2 border-dashed border-gray-300 rounded-md hover:border-purple-300 hover:bg-purple-50 dark:hover:bg-slate-800 transition-all duration-300 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 text-purple-500">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" x2="12" y1="3" y2="15" />
+                  </svg>
+                  Upload Image
+                </button>
+                <button id="camera-btn" class="flex-1 px-4 py-2 border-2 border-dashed border-gray-300 rounded-md hover:border-purple-300 hover:bg-purple-50 dark:hover:bg-slate-800 transition-all duration-300 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 text-purple-500">
+                    <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+                    <circle cx="12" cy="13" r="3" />
+                  </svg>
+                  Take Photo
+                </button>
+              </div>
+
+              <div id="image-loading" class="flex justify-center p-8 hidden">
+                <div class="relative">
+                  <div class="absolute -inset-1 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full blur opacity-25 animate-pulse"></div>
+                  <div class="relative">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-spin text-purple-500">
+                      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <div id="image-error" class="mt-4 text-red-500 opacity-80 hidden"></div>
+
+              <div id="image-preview" class="mt-4 border rounded-md overflow-hidden hidden">
+                <img id="uploaded-image" src="/placeholder.svg" alt="Uploaded math problem" class="w-full object-contain max-h-64">
+              </div>
+
+              <div id="image-result" class="mt-4 hidden">
+                <div class="card p-4 border border-slate-200 dark:border-slate-700 shadow-md overflow-hidden">
+                  <div class="mb-4 pb-3 border-b">
+                    <h3 class="text-lg font-medium">Detected Problem:</h3>
+                    <p id="detected-problem" class="text-lg font-bold text-purple-600 dark:text-purple-400 mt-1"></p>
+                  </div>
+
+                  <div class="mb-4 pb-3 border-b">
+                    <h3 class="text-lg font-medium flex items-center">
+                      <span class="mr-2">Result:</span>
+                      <span id="image-answer" class="font-bold text-purple-600 dark:text-purple-400"></span>
+                    </h3>
+                  </div>
+
+                  <div>
+                    <h4 class="font-medium mb-2 flex items-center">
+                      <span class="h-1 w-3 bg-purple-500 rounded-full mr-2"></span>
+                      Steps:
+                    </h4>
+                    <ol id="image-steps" class="list-decimal pl-5 space-y-1"></ol>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-content" id="chat-tab">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="text-xl font-bold flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-500">
+                  <path d="M3 7h18" />
+                  <path d="M7 7v14" />
+                  <path d="M3 21h18" />
+                  <path d="M17 7v14" />
+                  <path d="M3 13h18" />
+                  <path d="M10 13v8" />
+                  <path d="M14 13v8" />
+                </svg>
+                Math Chat Assistant
+              </h2>
+              <p class="text-gray-500 mt-1">Ask questions or get help with any math problem</p>
+            </div>
+            <div class="p-6">
+              <div class="flex flex-col h-[500px]">
+                <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4">
+                  <!-- Messages will be added here -->
+                </div>
+
+                <div class="p-4 border-t">
+                  <div class="flex gap-2">
+                    <input type="text" id="chat-input" placeholder="Ask a math question..." class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <button id="send-btn" class="btn-gradient px-4 py-2 rounded-md">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m22 2-7 20-4-9-9-4Z" />
+                        <path d="M22 2 11 13" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-16">
+        <div class="flex items-center gap-2 mb-6">
+          <div class="h-1 w-6 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full"></div>
+          <h2 class="text-2xl font-bold">Examples</h2>
+          <div class="h-1 flex-1 bg-gradient-to-r from-purple-500 to-transparent rounded-full"></div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="card border border-slate-200 dark:border-slate-700 shadow-md hover:shadow-lg transition-shadow duration-300">
+            <div class="card-header">
+              <h3 class="text-lg font-bold">Basic Operations</h3>
+            </div>
+            <div class="p-4">
+              <ul class="list-disc pl-5 space-y-1">
+                <li>-(45) + +12</li>
+                <li>3 × (4 + 2) ÷ 2</li>
+                <li>√16 + 5²</li>
+              </ul>
+            </div>
+          </div>
+          <div class="card border border-slate-200 dark:border-slate-700 shadow-md hover:shadow-lg transition-shadow duration-300">
+            <div class="card-header">
+              <h3 class="text-lg font-bold">Equations</h3>
+            </div>
+            <div class="p-4">
+              <ul class="list-disc pl-5 space-y-1">
+                <li>2x + 5 = 15</li>
+                <li>y² - 4 = 0</li>
+                <li>3x - 2y = 12</li>
+              </ul>
+            </div>
+          </div>
+          <div class="card border border-slate-200 dark:border-slate-700 shadow-md hover:shadow-lg transition-shadow duration-300">
+            <div class="card-header">
+              <h3 class="text-lg font-bold">Advanced Math</h3>
+            </div>
+            <div class="p-4">
+              <ul class="list-disc pl-5 space-y-1">
+                <li>Integrate x² + 2x</li>
+                <li>Solve system of equations</li>
+                <li>Find derivative of sin(x)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="mt-16 text-center text-sm text-gray-500 pb-8">
+        <div class="flex items-center justify-center gap-1">
+          <span>Powered by</span>
+          <span class="font-medium text-gradient">MathSolve</span>
+          <span>•</span>
+          <span>Made by Lec</span>
+        </div>
+      </footer>
+    </div>
+  </main>
+
+  <script>
+    // Store the anime character image as a base64 string
+    const animeAvatarBase64 = "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/3193a231-5fb3-4663-8915-3cd38ac92f3e.jpg-IwttJOXoWI6l26kdRVfLeEJgv3DTJ7.jpeg";
+
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        // Remove active class from all tabs
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        // Add active class to clicked tab
+        tab.classList.add('active');
+        
+        // Hide all tab content
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        // Show the corresponding tab content
+        const tabId = tab.getAttribute('data-tab');
+        document.getElementById(`${tabId}-tab`).classList.add('active');
+      });
+    });
+
+    // Math Expression Solver
+    const expressionInput = document.getElementById('expression-input');
+    const solveBtn = document.getElementById('solve-btn');
+    const expressionError = document.getElementById('expression-error');
+    const expressionResult = document.getElementById('expression-result');
+    const expressionAnswer = document.getElementById('expression-answer');
+    const expressionSteps = document.getElementById('expression-steps');
+    const numberLineContainer = document.getElementById('number-line-container');
+    const numberLineCanvas = document.getElementById('number-line');
+
+    solveBtn.addEventListener('click', solveMathProblem);
+    expressionInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') solveMathProblem();
+    });
+
+    function solveMathProblem() {
+      const expression = expressionInput.value.trim();
+      if (!expression) return;
+
+      // Clear previous results
+      expressionError.classList.add('hidden');
+      expressionResult.classList.add('hidden');
+      numberLineContainer.classList.add('hidden');
+
+      // Simulate loading (in a real app, this would be an API call)
+      setTimeout(() => {
+        try {
+          let result;
+          // Handle basic arithmetic
+          if (/^[0-9+\-*/().^\s]+$/.test(expression)) {
+            // Safe eval for basic arithmetic
+            result = {
+              answer: Function('"use strict";return (' + expression + ')')(),
+              steps: [
+                `Evaluating the expression: ${expression}`,
+                `Applying order of operations (PEMDAS)`,
+                `Result: ${Function('"use strict";return (' + expression + ')')()}`
+              ],
+              type: 'arithmetic'
+            };
+          }
+          // Handle equations with x
+          else if (expression.includes('=') && expression.includes('x')) {
+            const parts = expression.split('=');
+            if (parts.length === 2 && expression.includes('x')) {
+              // Simple linear equation solver for demo
+              if (expression === '2x + 5 = 15') {
+                result = {
+                  answer: 'x = 5',
+                  steps: [
+                    '2x + 5 = 15',
+                    '2x = 15 - 5',
+                    '2x = 10',
+                    'x = 10 ÷ 2',
+                    'x = 5'
+                  ],
+                  type: 'equation'
+                };
+              } else {
+                result = {
+                  answer: 'Equation solver available in full version',
+                  steps: ['This is a placeholder for equation solving'],
+                  type: 'equation'
+                };
+              }
+            }
+          }
+          // Handle specific example
+          else if (expression === '-(45) + +12') {
+            result = {
+              answer: -33,
+              steps: [
+                '-(45) + +12',
+                '-45 + 12',
+                '-33'
+              ],
+              type: 'arithmetic',
+              visualization: 'number-line'
+            };
+          }
+          // Default response for other expressions
+          else {
+            result = {
+              answer: 'Complex expression detected',
+              steps: ['This expression would be processed by our AI model in the full implementation'],
+              type: 'complex'
+            };
+          }
+
+          // Display result
+          expressionAnswer.textContent = result.answer;
+          expressionSteps.innerHTML = '';
+          result.steps.forEach(step => {
+            const li = document.createElement('li');
+            li.className = 'py-1';
+            li.textContent = step;
+            expressionSteps.appendChild(li);
+          });
+
+          expressionResult.classList.remove('hidden');
+
+          // Draw number line if needed
+          if (result.visualization === 'number-line') {
+            drawNumberLine(numberLineCanvas, -50, 20, result.answer);
+            numberLineContainer.classList.remove('hidden');
+          }
+        } catch (err) {
+          expressionError.textContent = 'Failed to process the expression. Please check your syntax.';
+          expressionError.classList.remove('hidden');
+          
+          // Auto-hide error after 3 seconds
+          expressionError.classList.add('animate-fade-out');
+          setTimeout(() => {
+            expressionError.classList.add('hidden');
+            expressionError.classList.remove('animate-fade-out');
+          }, 3000);
+        }
+      }, 1000);
+    }
+
+    function drawNumberLine(canvas, min, max, value) {
+      const ctx = canvas.getContext('2d');
+      const width = canvas.width;
+      const height = canvas.height;
+      const padding = 30;
+      const lineY = height / 2;
+      const tickHeight = 10;
+      const range = max - min;
+      const pixelsPerUnit = (width - 2 * padding) / range;
+
+      // Clear canvas
+      ctx.clearRect(0, 0, width, height);
+
+      // Draw background
+      ctx.fillStyle = '#f8fafc'; // Light background
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        ctx.fillStyle = '#0f172a'; // Dark background
+      }
+      ctx.fillRect(0, 0, width, height);
+
+      // Draw main line
+      ctx.beginPath();
+      ctx.moveTo(padding, lineY);
+      ctx.lineTo(width - padding, lineY);
+      ctx.strokeStyle = '#94a3b8'; // Slate-400
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Draw ticks and labels
+      for (let i = min; i <= max; i += 10) {
+        const x = padding + (i - min) * pixelsPerUnit;
+
+        // Draw tick
+        ctx.beginPath();
+        ctx.moveTo(x, lineY - tickHeight);
+        ctx.lineTo(x, lineY + tickHeight);
+        ctx.strokeStyle = '#64748b'; // Slate-500
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Draw label
+        ctx.fillStyle = '#334155'; // Slate-700
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          ctx.fillStyle = '#e2e8f0'; // Slate-200 for dark mode
+        }
+        ctx.font = '12px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(i.toString(), x, lineY + tickHeight + 15);
+      }
+
+      // Draw minor ticks
+      for (let i = min; i <= max; i += 5) {
+        if (i % 10 === 0) continue; // Skip major ticks
+
+        const x = padding + (i - min) * pixelsPerUnit;
+
+        ctx.beginPath();
+        ctx.moveTo(x, lineY - tickHeight / 2);
+        ctx.lineTo(x, lineY + tickHeight / 2);
+        ctx.strokeStyle = '#94a3b8'; // Slate-400
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+
+      // Draw highlighted value
+      if (value >= min && value <= max) {
+        const valueX = padding + (value - min) * pixelsPerUnit;
+
+        // Draw glow effect
+        const gradient = ctx.createRadialGradient(valueX, lineY, 0, valueX, lineY, 15);
+        gradient.addColorStop(0, 'rgba(216, 180, 254, 0.8)'); // Purple-300 with alpha
+        gradient.addColorStop(1, 'rgba(216, 180, 254, 0)');
+        ctx.beginPath();
+        ctx.arc(valueX, lineY, 15, 0, 2 * Math.PI);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+
+        // Draw circle at value
+        ctx.beginPath();
+        ctx.arc(valueX, lineY, 8, 0, 2 * Math.PI);
+        ctx.fillStyle = '#d946ef'; // Pink-500
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Draw value label
+        ctx.fillStyle = '#0f172a'; // Slate-900
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          ctx.fillStyle = '#ffffff'; // White for dark mode
+        }
+        ctx.font = 'bold 14px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(value.toString(), valueX, lineY - 20);
+      }
+    }
+
+    // Image Upload
+    const fileInput = document.getElementById('file-input');
+    const uploadBtn = document.getElementById('upload-btn');
+    const cameraBtn = document.getElementById('camera-btn');
+    const imageLoading = document.getElementById('image-loading');
+    const imageError = document.getElementById('image-error');
+    const imagePreview = document.getElementById('image-preview');
+    const uploadedImage = document.getElementById('uploaded-image');
+    const imageResult = document.getElementById('image-result');
+    const detectedProblem = document.getElementById('detected-problem');
+    const imageAnswer = document.getElementById('image-answer');
+    const imageSteps = document.getElementById('image-steps');
+
+    uploadBtn.addEventListener('click', () => fileInput.click());
+    cameraBtn.addEventListener('click', handleCameraCapture);
+    fileInput.addEventListener('change', handleFileChange);
+
+    function handleFileChange(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        uploadedImage.src = event.target.result;
+        imagePreview.classList.remove('hidden');
+        processImage(file);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function handleCameraCapture() {
+      try {
+        navigator.mediaDevices.getUserMedia({ video: true })
+          .then(stream => {
+            // In a real implementation, this would open a camera interface
+            // For this demo, we'll just trigger the file input
+            fileInput.click();
+            
+            // Don't forget to stop the stream in a real implementation
+            stream.getTracks().forEach(track => track.stop());
+          })
+          .catch(err => {
+            imageError.textContent = 'Failed to access camera. Please check permissions.';
+            imageError.classList.remove('hidden');
+            
+            // Auto-hide error after 3 seconds
+            imageError.classList.add('animate-fade-out');
+            setTimeout(() => {
+              imageError.classList.add('hidden');
+              imageError.classList.remove('animate-fade-out');
+            }, 3000);
+          });
+      } catch (err) {
+        imageError.textContent = 'Failed to access camera. Please check permissions.';
+        imageError.classList.remove('hidden');
+        
+        // Auto-hide error after 3 seconds
+        imageError.classList.add('animate-fade-out');
+        setTimeout(() => {
+          imageError.classList.add('hidden');
+          imageError.classList.remove('animate-fade-out');
+        }, 3000);
+      }
+    }
+
+    function processImage(file) {
+      // Clear previous results
+      imageLoading.classList.remove('hidden');
+      imageError.classList.add('hidden');
+      imageResult.classList.add('hidden');
+
+      // Simulate processing (in a real app, this would be an API call)
+      setTimeout(() => {
+        imageLoading.classList.add('hidden');
+
+        // Mock response for demo purposes
+        const result = {
+          detectedProblem: '3x + 5 = 20',
+          answer: 'x = 5',
+          steps: [
+            '3x + 5 = 20',
+            '3x = 20 - 5',
+            '3x = 15',
+            'x = 15 ÷ 3',
+            'x = 5'
+          ]
+        };
+
+        // Display result
+        detectedProblem.textContent = result.detectedProblem;
+        imageAnswer.textContent = result.answer;
+        imageSteps.innerHTML = '';
+        result.steps.forEach(step => {
+          const li = document.createElement('li');
+          li.className = 'py-1';
+          li.textContent = step;
+          imageSteps.appendChild(li);
+        });
+
+        imageResult.classList.remove('hidden');
+      }, 2000);
+    }
+
+    // Chat Interface
+    const chatMessages = document.getElementById('chat-messages');
+    const chatInput = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-btn');
+
+    // Initialize chat with welcome message
+    addMessage('What\'s good? I\'m your math assistant. Ask me any math question or problem!', 'assistant');
+
+    sendBtn.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') sendMessage();
+    });
+
+    function sendMessage() {
+      const message = chatInput.value.trim();
+      if (!message) return;
+
+      // Add user message
+      addMessage(message, 'user');
+      chatInput.value = '';
+
+      // Show typing indicator
+      const typingId = showTypingIndicator();
+
+      // Simulate AI response (in a real app, this would be an API call)
+      setTimeout(() => {
+        // Remove typing indicator
+        document.getElementById(typingId).remove();
+
+        // Generate response
+        let response = '';
+        if (message.toLowerCase().includes('solve') && message.includes('x')) {
+          response = 'To solve for x in this equation, I\'ll isolate the variable:\n\n2x + 3 = 9\n2x = 9 - 3\n2x = 6\nx = 6/2\nx = 3';
+        } else if (message.toLowerCase().includes('derivative')) {
+          response = 'The derivative of f(x) = x² is f\'(x) = 2x';
+        } else if (message.toLowerCase().includes('integrate')) {
+          response = 'The integral of f(x) = x² is F(x) = x³/3 + C';
+        } else if (message.includes('+') || message.includes('-') || message.includes('*') || message.includes('/')) {
+          // Simple calculator for basic operations
+          try {
+            const result = Function('"use strict";return (' + message + ')')();
+            response = `The result of ${message} is ${result}`;
+          } catch {
+            response = 'I couldn\'t calculate that expression. Please check the syntax.';
+          }
+        } else {
+          response = 'I\'d be happy to help with your math problem. Could you provide more details or specify what type of math problem you\'re working on?';
+        }
+
+        // Add assistant message
+        addMessage(response, 'assistant');
+
+        // Scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }, 1500);
+    }
+
+    function addMessage(content, sender) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `chat-message ${sender}`;
+
+      let html = '';
+      if (sender === 'assistant') {
+        html = `
+          <div class="flex items-start gap-2 max-w-[80%]">
+            <div class="avatar assistant">
+              <img src="${animeAvatarBase64}" alt="Math Assistant" class="w-full h-full object-cover">
+            </div>
+            <div class="chat-bubble assistant">
+              <div class="whitespace-pre-line">${content}</div>
+            </div>
+          </div>
+        `;
+      } else {
+        html = `
+          <div class="flex items-start gap-2 max-w-[80%] ml-auto">
+            <div class="chat-bubble user">
+              <div class="whitespace-pre-line">${content}</div>
+            </div>
+            <div class="avatar user">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            </div>
+          </div>
+        `;
+      }
+
+      messageDiv.innerHTML = html;
+      chatMessages.appendChild(messageDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function showTypingIndicator() {
+      const id = 'typing-' + Date.now();
+      const typingDiv = document.createElement('div');
+      typingDiv.id = id;
+      typingDiv.className = 'chat-message';
+      typingDiv.innerHTML = `
+        <div class="flex items-start gap-2">
+          <div class="avatar assistant">
+            <img src="${animeAvatarBase64}" alt="Math Assistant" class="w-full h-full object-cover">
+          </div>
+          <div class="chat-bubble assistant">
+            <div class="typing-indicator">
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+            </div>
+          </div>
+        </div>
+      `;
+      chatMessages.appendChild(typingDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      return id;
+    }
+  </script>
+</body>
+</html>
