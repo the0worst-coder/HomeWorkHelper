@@ -189,6 +189,25 @@
       background-color: var(--slate-50);
     }
 
+    .paste-area {
+      border: 2px dashed var(--slate-200);
+      border-radius: 0.5rem;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .paste-area:hover {
+      border-color: var(--purple-500);
+      background-color: rgba(168, 85, 247, 0.05);
+    }
+
+    .paste-area.active {
+      border-color: var(--purple-500);
+      background-color: rgba(168, 85, 247, 0.1);
+    }
+
     /* Dark mode styles */
     @media (prefers-color-scheme: dark) {
       body {
@@ -222,6 +241,14 @@
       .number-line {
         border: 1px solid var(--slate-700);
         background-color: var(--slate-900);
+      }
+
+      .paste-area {
+        border-color: var(--slate-700);
+      }
+
+      .paste-area:hover {
+        background-color: rgba(168, 85, 247, 0.1);
       }
     }
   </style>
@@ -356,11 +383,11 @@
                 </svg>
                 Upload Math Problem
               </h2>
-              <p class="text-gray-500 mt-1">Take a photo or upload an image of your math problem</p>
+              <p class="text-gray-500 mt-1">Take a photo, upload an image, or paste a screenshot of your math problem</p>
             </div>
             <div class="p-6">
               <input type="file" id="file-input" accept="image/*" class="hidden">
-              <div class="flex gap-2">
+              <div class="flex gap-2 mb-4">
                 <button id="upload-btn" class="flex-1 px-4 py-2 border-2 border-dashed border-gray-300 rounded-md hover:border-purple-300 hover:bg-purple-50 dark:hover:bg-slate-800 transition-all duration-300 flex items-center justify-center">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 text-purple-500">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -376,6 +403,17 @@
                   </svg>
                   Take Photo
                 </button>
+              </div>
+
+              <!-- Paste Area -->
+              <div id="paste-area" class="paste-area mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-2 text-purple-500">
+                  <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+                  <rect width="6" height="4" x="9" y="3" rx="1" />
+                  <path d="M8 12h8" />
+                  <path d="M8 16h8" />
+                </svg>
+                <p class="text-gray-500">Click here or press <kbd class="px-2 py-1 bg-gray-100 dark:bg-slate-700 rounded">Ctrl</kbd> + <kbd class="px-2 py-1 bg-gray-100 dark:bg-slate-700 rounded">V</kbd> to paste an image</p>
               </div>
 
               <div id="image-loading" class="flex justify-center p-8 hidden">
@@ -761,6 +799,7 @@
     const fileInput = document.getElementById('file-input');
     const uploadBtn = document.getElementById('upload-btn');
     const cameraBtn = document.getElementById('camera-btn');
+    const pasteArea = document.getElementById('paste-area');
     const imageLoading = document.getElementById('image-loading');
     const imageError = document.getElementById('image-error');
     const imagePreview = document.getElementById('image-preview');
@@ -773,11 +812,72 @@
     uploadBtn.addEventListener('click', () => fileInput.click());
     cameraBtn.addEventListener('click', handleCameraCapture);
     fileInput.addEventListener('change', handleFileChange);
+    
+    // Paste functionality
+    pasteArea.addEventListener('click', () => {
+      // Focus on the document to capture paste events
+      document.focus();
+      // Show a message to the user
+      showImageMessage('Click here and press Ctrl+V to paste an image');
+    });
+
+    // Add paste event listener to the document
+    document.addEventListener('paste', handlePaste);
+
+    // Add dragover and drop events to the paste area
+    pasteArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      pasteArea.classList.add('active');
+    });
+
+    pasteArea.addEventListener('dragleave', () => {
+      pasteArea.classList.remove('active');
+    });
+
+    pasteArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      pasteArea.classList.remove('active');
+      
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        const file = e.dataTransfer.files[0];
+        if (file.type.startsWith('image/')) {
+          handleImageFile(file);
+        } else {
+          showImageError('Please drop an image file.');
+        }
+      }
+    });
+
+    function handlePaste(e) {
+      // Switch to the image tab
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelector('.tab[data-tab="image"]').classList.add('active');
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      document.getElementById('image-tab').classList.add('active');
+
+      // Get clipboard items
+      const items = e.clipboardData.items;
+      
+      // Find image items
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          const file = items[i].getAsFile();
+          handleImageFile(file);
+          return;
+        }
+      }
+      
+      // No image found in clipboard
+      showImageError('No image found in clipboard. Please copy an image first.');
+    }
 
     function handleFileChange(e) {
       const file = e.target.files[0];
       if (!file) return;
+      handleImageFile(file);
+    }
 
+    function handleImageFile(file) {
       const reader = new FileReader();
       reader.onload = (event) => {
         uploadedImage.src = event.target.result;
@@ -799,27 +899,28 @@
             stream.getTracks().forEach(track => track.stop());
           })
           .catch(err => {
-            imageError.textContent = 'Failed to access camera. Please check permissions.';
-            imageError.classList.remove('hidden');
-            
-            // Auto-hide error after 3 seconds
-            imageError.classList.add('animate-fade-out');
-            setTimeout(() => {
-              imageError.classList.add('hidden');
-              imageError.classList.remove('animate-fade-out');
-            }, 3000);
+            showImageError('Failed to access camera. Please check permissions.');
           });
       } catch (err) {
-        imageError.textContent = 'Failed to access camera. Please check permissions.';
-        imageError.classList.remove('hidden');
-        
-        // Auto-hide error after 3 seconds
-        imageError.classList.add('animate-fade-out');
-        setTimeout(() => {
-          imageError.classList.add('hidden');
-          imageError.classList.remove('animate-fade-out');
-        }, 3000);
+        showImageError('Failed to access camera. Please check permissions.');
       }
+    }
+
+    function showImageError(message) {
+      imageError.textContent = message;
+      imageError.classList.remove('hidden');
+      
+      // Auto-hide error after 3 seconds
+      imageError.classList.add('animate-fade-out');
+      setTimeout(() => {
+        imageError.classList.add('hidden');
+        imageError.classList.remove('animate-fade-out');
+      }, 3000);
+    }
+
+    function showImageMessage(message) {
+      // This could be enhanced to show a toast or other notification
+      console.log(message);
     }
 
     function processImage(file) {
